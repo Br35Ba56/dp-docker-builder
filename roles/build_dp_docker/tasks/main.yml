@@ -1,0 +1,42 @@
+- name: Create dir to build image from
+  tempfile:
+    state: directory
+    prefix: dp_docker_build_
+  register: tempdir
+
+- name: Set version in Dockerfile {{ version }}
+  template:
+    src: templates/Dockerfile.j2
+    dest: "{{ tempdir.path }}/Dockerfile"
+
+- name: Copy config into build directory
+  copy:
+    src: files/2018/config
+    dest: "{{ tempdir.path }}"
+  when: '"2018.4" in version'
+
+- name: Copy config into build directory
+  copy:
+    src: files/10/config
+    dest: "{{ tempdir.path }}"
+  when: '"10.0" in version'
+
+- name: log into docker
+  community.docker.docker_login:
+    password: "{{ docker_password }}"
+    username: "{{ docker_username }}"
+
+- name: Build the datapower image {{ version }}
+  community.docker.docker_image:
+    name: tonyschndr/datapower:{{ version }}
+    source: build
+    build:
+      path: "{{ tempdir.path }}"
+    state: present
+    force_absent: yes
+    push: yes
+
+- name: Remove build directory
+  file:
+    state: absent
+    path: "{{ docker_build_dir }}"

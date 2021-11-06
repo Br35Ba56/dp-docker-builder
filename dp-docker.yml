@@ -1,0 +1,21 @@
+---
+- name: Create datapower docker container and publish to dockerhub
+  hosts: localhost
+  vars:
+    # Specify datapower base image version.
+    dp_version: 10.0.1.4
+
+  vars_prompt:
+    - name: docker_username
+      prompt: Enter dockerhub username
+      private: no
+
+    - name: docker_password
+      prompt: Enter dockerhub password
+      private: yes
+
+  tasks:
+    - include_role:
+        name: build_dp_docker
+      vars:
+        version: "{{dp_version}}"
